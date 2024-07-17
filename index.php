@@ -39,9 +39,30 @@ if (isloggedin()) {
 }
 
 $messageform->display();
+$messages = $DB->get_records('local_greetings_messages');
+echo $OUTPUT->box_start('card-columns');
+
+foreach ($messages as $m) {
+    echo html_writer::start_tag('div', ['class' => 'card']);
+    echo html_writer::start_tag('div', ['class' => 'card-body']);
+    echo html_writer::tag('p', $m->message, ['class' => 'card-text']);
+    echo html_writer::start_tag('p', ['class' => 'card-text']);
+    echo html_writer::tag('small', userdate($m->timecreated), ['class' => 'text-muted']);
+    echo html_writer::end_tag('p');
+    echo html_writer::end_tag('div');
+    echo html_writer::end_tag('div');
+}
+
+echo $OUTPUT->box_end();
 if ($data = $messageform->get_data()) {
     $message = required_param('message', PARAM_TEXT);
 
-echo $OUTPUT->heading($message, 4);
+    if (!empty($message)) {
+        $record = new stdClass;
+        $record->message = $message;
+        $record->timecreated = time();
+
+        $DB->insert_record('local_greetings_messages', $record);
+    }
 }
 echo $OUTPUT->footer();
