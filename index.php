@@ -40,11 +40,13 @@ $deleteanypost = has_capability('local/greetings:deleteanymessage', $context);
 $action = optional_param('action', '', PARAM_TEXT);
 
 if ($action == 'del') {
+    require_sesskey();
     require_capability('local/greetings:deleteanymessage', $context);
 
     $id = required_param('id', PARAM_TEXT);
 
     $DB->delete_records('local_greetings_messages', ['id' => $id]);
+    redirect($PAGE->url);
 }
 
 echo $OUTPUT->header();
@@ -87,12 +89,17 @@ foreach ($messages as $m) {
         echo html_writer::link(
             new moodle_url(
                 '/local/greetings/index.php',
-                ['action' => 'del', 'id' => $m->id]
+                [
+                    'action' => 'del',
+                    'id' => $m->id,
+                    'sesskey' => sesskey() // sesskey parametresini ekleyin
+                ]
             ),
             $OUTPUT->pix_icon('t/delete', '') . get_string('delete')
         );
         echo html_writer::end_tag('p');
     }
+    
 }
 if ($messageform->is_submitted()) {
     $data = $messageform->get_data();
