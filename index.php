@@ -20,7 +20,7 @@
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 require_once('../../config.php');
-require_once($CFG->dirroot. '/local/greetings/lib.php');
+require_once($CFG->dirroot . '/local/greetings/lib.php');
 
 $context = context_system::instance();
 $PAGE->set_context($context);
@@ -28,22 +28,36 @@ $PAGE->set_url(new moodle_url('/local/greetings/index.php'));
 $PAGE->set_pagelayout('standard');
 $PAGE->set_title($SITE->fullname);
 $PAGE->set_heading(get_string('pluginname', 'local_greetings'));
+
 require_login();
 if (isguestuser()) {
     throw new moodle_exception('noguest');
 }
 
 $messageform = new \local_greetings\form\message_form();
+$allowpost = has_capability('local/greetings:postmessages', $context);
+$deleteanypost = has_capability('local/greetings:deleteanymessage', $context);
+$action = optional_param('action', '', PARAM_TEXT);
+
+if ($action == 'del') {
+    require_capability('local/greetings:deleteanymessage', $context);
+
+    $id = required_param('id', PARAM_TEXT);
+
+    $DB->delete_records('local_greetings_messages', ['id' => $id]);
+}
+
 echo $OUTPUT->header();
 
 if (isloggedin()) {
-    // Kullanıcının adını almak için get_string fonksiyonunu kullanıyoruz.
     echo get_string('greetinguser', 'local_greetings', $USER->firstname);
 } else {
     echo get_string('greetinguser', 'local_greetings', '');
 }
 
-$messageform->display();
+if ($allowpost) {
+    $messageform->display();
+}
 
 $userfields = \core_user\fields::for_name()->with_identity($context);
 $userfieldssql = $userfields->get_sql('u');
@@ -67,27 +81,31 @@ foreach ($messages as $m) {
     echo html_writer::end_tag('p');
     echo html_writer::end_tag('div');
     echo html_writer::end_tag('div');
+
+    if ($deleteanypost) {
+        echo html_writer::start_tag('p', ['class' => 'card-footer text-center']);
+        echo html_writer::link(
+            new moodle_url(
+                '/local/greetings/index.php',
+                ['action' => 'del', 'id' => $m->id]
+            ),
+            $OUTPUT->pix_icon('t/delete', '') . get_string('delete')
+        );
+        echo html_writer::end_tag('p');
+    }
 }
-
-echo $OUTPUT->box_end();
-
-if ($data = $messageform->get_data()) {
-    $message = required_param('message', PARAM_TEXT);
-
-    if (!empty($message)) {
-        $record = new stdClass;
-        $record->message = $message;
+if ($messageform->is_submitted()) {
+    $data = $messageform->get_data();
+    if ($data) {
+        $record = new stdClass();
+        $record->message = $data->message;
         $record->timecreated = time();
         $record->userid = $USER->id;
-
+        
         $DB->insert_record('local_greetings_messages', $record);
     }
 }
 
+echo $OUTPUT->box_end();
 
 echo $OUTPUT->footer();
-
-echo $USER->firstname;
-
-$welcome_message = get_string('greetinguser', 'local_greetings', $USER->firstname);
-echo $welcome_message; // Mesajın doğru şekilde oluşturulup oluşturulmadığını kontrol edin.
