@@ -39,7 +39,15 @@ if (isloggedin()) {
 }
 
 $messageform->display();
-$messages = $DB->get_records('local_greetings_messages');
+$userfields = \core_user\fields::for_name()->with_identity($context);
+$userfieldssql = $userfields->get_sql('u');
+
+$sql = "SELECT m.id, m.message, m.timecreated, m.userid {$userfieldssql->selects}
+          FROM {local_greetings_messages} m
+     LEFT JOIN {user} u ON u.id = m.userid
+      ORDER BY timecreated DESC";
+
+$messages = $DB->get_records_sql($sql);
 echo $OUTPUT->box_start('card-columns');
 
 foreach ($messages as $m) {
@@ -61,6 +69,7 @@ if ($data = $messageform->get_data()) {
         $record = new stdClass;
         $record->message = $message;
         $record->timecreated = time();
+        $record->userid = $USER->id;
 
         $DB->insert_record('local_greetings_messages', $record);
     }
