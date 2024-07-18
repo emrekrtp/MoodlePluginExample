@@ -28,32 +28,40 @@ $PAGE->set_url(new moodle_url('/local/greetings/index.php'));
 $PAGE->set_pagelayout('standard');
 $PAGE->set_title($SITE->fullname);
 $PAGE->set_heading(get_string('pluginname', 'local_greetings'));
+require_login();
+if (isguestuser()) {
+    throw new moodle_exception('noguest');
+}
 
 $messageform = new \local_greetings\form\message_form();
 echo $OUTPUT->header();
 
 if (isloggedin()) {
-    echo local_greetings_get_greeting($USER);
+    // Kullanıcının adını almak için get_string fonksiyonunu kullanıyoruz.
+    echo get_string('greetinguser', 'local_greetings', $USER->firstname);
 } else {
-    echo get_string('greetinguser', 'local_greetings');
+    echo get_string('greetinguser', 'local_greetings', '');
 }
 
 $messageform->display();
+
 $userfields = \core_user\fields::for_name()->with_identity($context);
 $userfieldssql = $userfields->get_sql('u');
 
 $sql = "SELECT m.id, m.message, m.timecreated, m.userid {$userfieldssql->selects}
-          FROM {local_greetings_messages} m
-     LEFT JOIN {user} u ON u.id = m.userid
-      ORDER BY timecreated DESC";
+        FROM {local_greetings_messages} m
+        LEFT JOIN {user} u ON u.id = m.userid
+        ORDER BY timecreated DESC";
 
 $messages = $DB->get_records_sql($sql);
+
 echo $OUTPUT->box_start('card-columns');
 
 foreach ($messages as $m) {
     echo html_writer::start_tag('div', ['class' => 'card']);
     echo html_writer::start_tag('div', ['class' => 'card-body']);
-    echo html_writer::tag('p', $m->message, ['class' => 'card-text']);
+    echo html_writer::tag('p', format_text($m->message, FORMAT_PLAIN), ['class' => 'card-text']);
+    echo html_writer::tag('p', get_string('postedby', 'local_greetings', $m->firstname), ['class' => 'card-text']);
     echo html_writer::start_tag('p', ['class' => 'card-text']);
     echo html_writer::tag('small', userdate($m->timecreated), ['class' => 'text-muted']);
     echo html_writer::end_tag('p');
@@ -62,6 +70,7 @@ foreach ($messages as $m) {
 }
 
 echo $OUTPUT->box_end();
+
 if ($data = $messageform->get_data()) {
     $message = required_param('message', PARAM_TEXT);
 
@@ -74,4 +83,11 @@ if ($data = $messageform->get_data()) {
         $DB->insert_record('local_greetings_messages', $record);
     }
 }
+
+
 echo $OUTPUT->footer();
+
+echo $USER->firstname;
+
+$welcome_message = get_string('greetinguser', 'local_greetings', $USER->firstname);
+echo $welcome_message; // Mesajın doğru şekilde oluşturulup oluşturulmadığını kontrol edin.

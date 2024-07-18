@@ -8,11 +8,11 @@
 //
 // Moodle is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
+// along with Moodle. If not, see <https://www.gnu.org/licenses/>.
 
 /**
  * Plugin strings are defined here.
@@ -28,6 +28,7 @@ $string['pluginname'] = 'Greetings';
 $string['greetingloggedinuser'] = 'Welcome, logged-in user!';
 $string['yourmessage'] = 'Your message';
 $string['postedby'] = 'Posted by {$a}.';
+$string['greetinguser'] = 'Hello, {$a}!';
 $string['greetinguserau'] = 'Hello, {$a}.';
 $string['greetinguseres'] = 'Hola, {$a}.';
 $string['greetinguserfj'] = 'Bula, {$a}.';
