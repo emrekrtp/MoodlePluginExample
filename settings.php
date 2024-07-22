@@ -22,30 +22,18 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$capabilities = [
-    'local/greetings:postmessages' => [
-        'riskbitmask' => RISK_SPAM,
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_SYSTEM,
-        'archetypes' => [
-            'user' => CAP_ALLOW,
-        ]
-    ],
-    'local/greetings:viewmessages' => [
-        'riskbitmask' => RISK_SPAM,
-        'captype' => 'read',
-        'contextlevel' => CONTEXT_SYSTEM,
-        'archetypes' => [
-            'user' => CAP_ALLOW,
-        ]
-    ],
-    'local/greetings:deleteanymessage' => [
-        'riskbitmask' => RISK_SPAM,
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_SYSTEM,
-        'archetypes' => [
-            'manager' => CAP_ALLOW,
-        ]
-    ],
-];
+if ($hassiteconfig) {
+    $settings = new admin_settingpage('local_greetings', get_string('pluginname', 'local_greetings'));
+    $ADMIN->add('localplugins', $settings);
 
+    if ($ADMIN->fulltree) {
+        require_once($CFG->dirroot . '/local/greetings/lib.php');
+
+        $settings->add(new admin_setting_configtext(
+            'local_greetings/messagecardbgcolor',
+            get_string('messagecardbgcolor', 'local_greetings'),
+            get_string('messagecardbgcolordesc', 'local_greetings'),
+            '#FFFFFF',
+        ));
+    }
+}

@@ -72,6 +72,7 @@ $sql = "SELECT m.id, m.message, m.timecreated, m.userid {$userfieldssql->selects
 $messages = $DB->get_records_sql($sql);
 
 echo $OUTPUT->box_start('card-columns');
+$cardbackgroundcolor = get_config('local_greetings', 'messagecardbgcolor');
 
 foreach ($messages as $m) {
     echo html_writer::start_tag('div', ['class' => 'card']);
